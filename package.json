@@ -1,6 +1,6 @@
 {
   "name": "cron-webhook",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Cron for querying data and triggering webhooks",
   "main": "index.js",
   "scripts": {
