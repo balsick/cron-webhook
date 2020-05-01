@@ -16,12 +16,14 @@ function getCronFunction(options, objectParser) {
     
     let queryOptions = query
     if (typeof query === 'string') {
-        queryOptions.url = query
-        queryOptions.method = 'get'
+        queryOptions = {
+            url: query,
+            method: 'get'
+        }
     }
     if (!(queryOptions) || !(queryOptions.url))
         throw 'invalid query options'
-        
+
     return async () => {
         //console.log('going to perform query')
         const response = await axios(queryOptions);
