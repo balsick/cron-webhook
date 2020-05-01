@@ -10,7 +10,8 @@ function getCronFunction(options, objectParser) {
     let {
         webhook,
         query,
-        stateFilePath = '__tempState.json'
+        stateFilePath = '__tempState.json',
+        equal = deepEqual
     } = options;
     
     let queryOptions = query
@@ -28,7 +29,7 @@ function getCronFunction(options, objectParser) {
         let object = objectParser(response.data);
         //console.log(object)
         let stateEmpty = !state;
-        if (!state || !deepEqual(state, object)) {
+        if (object && (stateEmpty || !equal(state, object))) {
             state = object
             fs.writeFileSync(stateFilePath, JSON.stringify(state))
             if (stateEmpty && options.onStart || !stateEmpty)
