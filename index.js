@@ -4,23 +4,33 @@ const axios = require(`axios`)
 const deepEqual = require('deep-equal')
 const fs = require('fs')
 
-var state = getState0();
+var state;
 
 function getCronFunction(options, objectParser) {
     let {
         webhook,
-        queryOptions
+        query,
+        stateFilePath = '__tempState.json'
     } = options;
+    
+    let queryOptions = query
+    if (typeof query === 'string') {
+        queryOptions.url = query
+        queryOptions.method = 'get'
+    }
+    if (!(queryOptions) || !(queryOptions.url))
+        throw 'invalid query options'
+        
     return async () => {
-        console.log('going to perform query')
+        //console.log('going to perform query')
         const response = await axios(queryOptions);
-        console.log(response)
+        //console.log(response)
         let object = objectParser(response.data);
-        console.log(object)
+        //console.log(object)
         let stateEmpty = !state;
         if (!state || !deepEqual(state, object)) {
             state = object
-            fs.writeFileSync('state.json', JSON.stringify(state))
+            fs.writeFileSync(stateFilePath, JSON.stringify(state))
             if (stateEmpty && options.onStart || !stateEmpty)
                 axios({
                     method: 'get',
@@ -30,22 +40,23 @@ function getCronFunction(options, objectParser) {
     }
 }
 
-function getState0() {
+function getState0(filePath) {
     try {
-        let content = fs.readFileSync('state.json')
-        console.log(content)
+        let content = fs.readFileSync(filePath)
+        //console.log(content)
         return JSON.parse(content)
     } catch (err) {
-        console.log('no data found')
+        //console.log('no data found')
         return null;
     }
 }
 
-module.exports = ({options, objectParser, cronPattern = "*/1 * * * *"}) => {
-    console.log('going to start cron job')
-    console.log(options)
-    console.log(cronPattern)
+module.exports = ({options, objectParser = JSON.parse, cronPattern = "* * * * *"}) => {
+    //console.log('going to start cron job')
+    //console.log(options)
+    //console.log(cronPattern)
+    state = getState0(options.stateFilePath || '__tempState.json');
     var job = new CronJob(cronPattern, getCronFunction(options, objectParser), null, true, "Europe/Rome")
     job.start();
-    console.log('started')
+    //console.log('started')
 }
