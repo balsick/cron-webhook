@@ -21,6 +21,7 @@ This will perform every minute a *get* on the provided *url* and when data chang
 
 ## Params
 Additional parameters and configurations can be set.
+```javascript
 cronWebhook({
     options: {
         queryOptions: {
@@ -34,5 +35,6 @@ cronWebhook({
     objectParser: (string) => {} //optional, defaults to JSON.parse, function that converts queried response to object,
     cronPattern: validCronPattern //optional, defaults to * * * * *, that is every minute
 })
+```
 
 Visit [cron github project](https://www.npmjs.com/package/cron) for *cronPattern*.
