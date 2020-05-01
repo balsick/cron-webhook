@@ -1,0 +1,25 @@
+{
+  "name": "balsick.it-cron",
+  "version": "1.0.0",
+  "description": "Cron for querying data and triggering netlify webhook for balsick.it",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/balsick/balsick.it-cron.git"
+  },
+  "keywords": [
+    "cron"
+  ],
+  "author": "balsick",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/balsick/balsick.it-cron/issues"
+  },
+  "homepage": "https://github.com/balsick/balsick.it-cron#readme",
+  "dependencies": {
+    "cron": "^1.8.2"
+  }
+}
