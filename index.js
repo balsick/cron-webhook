@@ -14,13 +14,7 @@ function getCronFunction(options, objectParser) {
         equal = deepEqual
     } = options;
     
-    let queryOptions = query
-    if (typeof query === 'string') {
-        queryOptions = {
-            url: query,
-            method: 'get'
-        }
-    }
+    let queryOptions = extractQueryOptions(query);
     if (!(queryOptions) || !(queryOptions.url))
         throw 'invalid query options'
 
@@ -35,12 +29,28 @@ function getCronFunction(options, objectParser) {
             state = object
             fs.writeFileSync(stateFilePath, JSON.stringify(state))
             if (stateEmpty && options.onStart || !stateEmpty)
-                axios({
-                    method: 'get',
-                    url: webhook
-                })
+                notify(options)
         }   
     }
+}
+
+function extractQueryOptions(query) {
+    let queryOptions = query;
+    if (typeof query === 'string') {
+        queryOptions = {
+            url: query,
+            method: 'get'
+        };
+    }
+    return queryOptions;
+}
+
+function notify(options) {
+    let {
+        webhook
+    } = options;
+    
+    axios(extractQueryOptions(webhook))
 }
 
 function getState0(filePath) {
