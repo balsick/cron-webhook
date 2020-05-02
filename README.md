@@ -36,7 +36,8 @@ cronWebhook({
             ...
         },
         stateFilePath: stringStateFilePath, //optional, defaults to __tempState.json
-        onStart: boolean, //optional, defaults to false, to make the webhook be notified on the first time
+        onStart: boolean, //optional, defaults to false, to make the webhook be notified on the first time,
+        state: {}, //optional, initial state. if not provided, it is read from stateFilePath
     },
     objectParser: (string) => JSON.parse(string), //optional, defaults to JSON.parse, function that converts queried response to object,
     equal: (s1, s2) => false, //optional, defaults to deepEqual, function that is called to check
