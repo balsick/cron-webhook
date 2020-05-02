@@ -30,7 +30,11 @@ cronWebhook({
             url: url,
             ...
         },
-        webhook: webhookURL,
+        webhook: { // this can either be a url or an object made of method, url, parameters and body
+            method: httpMethod, //'get', 'post'
+            url: url,
+            ...
+        },
         stateFilePath: stringStateFilePath, //optional, defaults to __tempState.json
         onStart: boolean, //optional, defaults to false, to make the webhook be notified on the first time
     },
