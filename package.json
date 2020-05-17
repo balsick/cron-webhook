@@ -1,6 +1,6 @@
 {
   "name": "cron-webhook",
-  "version": "1.0.7",
+  "version": "1.2",
   "description": "Cron for querying data and triggering webhooks",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,8 @@
     "url": "git+https://github.com/balsick/cron-webhook.git"
   },
   "keywords": [
-    "cron", "webhook"
+    "cron",
+    "webhook"
   ],
   "author": "balsick",
   "license": "ISC",
@@ -22,6 +23,7 @@
   "dependencies": {
     "axios": "^0.19.2",
     "cron": "^1.8.2",
-    "deep-equal": "^2.0.3"
+    "deep-equal": "^2.0.3",
+    "xml2js": "^0.4.23"
   }
 }

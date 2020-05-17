@@ -3,30 +3,11 @@ const CronJob = require('cron').CronJob
 const axios = require(`axios`)
 const deepEqual = require('deep-equal')
 const fs = require('fs')
+const parseXmlString = require('xml2js').parseString
 
-function getCronFunction(options, objectParser) {
-    let {
-        query,
-        stateFilePath = '__tempState.json',
-        equal = deepEqual
-    } = options;
-    
-    let queryOptions = extractQueryOptions(query);
-    if (!(queryOptions) || !(queryOptions.url))
-        throw 'invalid query options'
-
-    return async () => {
-        const response = await axios(queryOptions);
-        let object = objectParser(response.data);
-        let stateEmpty = !options.state;
-        if (object && (stateEmpty || !equal(options.state, object))) {
-            options.state = object
-            fs.writeFileSync(stateFilePath, JSON.stringify(object))
-            if (stateEmpty && options.onStart || !stateEmpty)
-                notify(options)
-        }   
-    }
-}
+const TYPE_JSON = 'application/json'
+const TYPE_XML = 'application/xml'
+const TYPE_PLAIN_TEXT = 'text/plain'
 
 function extractQueryOptions(query) {
     let queryOptions = query;
@@ -34,16 +15,47 @@ function extractQueryOptions(query) {
         queryOptions = {
             url: query,
             method: 'get'
-        };
+        }
     }
-    return queryOptions;
+    return queryOptions
 }
 
-function notify(options) {
-    let {
-        webhook
-    } = options;
+function fromXml (string) {
+    let a;
+    parseXmlString(string, (err, res) => {
+        if (res)
+            a = res;
+    })
+    return a;
+}
+
+function getCronFunction(cronWebHook) {
+    let query = cronWebHook.querySettings.query
     
+    let queryOptions = extractQueryOptions(query)
+    if (!(queryOptions) || !(queryOptions.url))
+        throw 'invalid query options'
+
+    return async () => {
+        const response = await axios(queryOptions)
+        console.log(response)
+        console.log(response.data)
+        console.log(typeof response.data)
+        let object = typeof response.data === 'string' ? cronWebHook.objectParser(response.data) : response.data
+        console.log(object)
+        object = cronWebHook.objectTransformer(object)
+        console.log(object)
+        let stateEmpty = !cronWebHook.state
+        if (object && (stateEmpty || !cronWebHook.equal(cronWebHook.state, object))) {
+            cronWebHook.state = object
+            fs.writeFileSync((cronWebHook.stateFilePath), JSON.stringify(object))
+            if (stateEmpty && cronWebHook.onStart || !stateEmpty)
+                notify(cronWebHook.querySettings.webhook)
+        }   
+    }
+}
+
+function notify(webhook) {
     axios(extractQueryOptions(webhook))
 }
 
@@ -52,12 +64,57 @@ function getState0(filePath) {
         let content = fs.readFileSync(filePath)
         return JSON.parse(content)
     } catch (err) {
-        return null;
+        return null
     }
 }
 
-module.exports = ({options, objectParser = JSON.parse, cronPattern = "* * * * *"}) => {
-    options.state = options.state || getState0(options.stateFilePath || '__tempState.json');
-    var job = new CronJob(cronPattern, getCronFunction(options, objectParser), null, true, "Europe/Rome")
-    job.start();
+function startCronWebhook({querySettings, objectParser, objectTransformer, cronPattern, stateFilePath, equal, state, onStart}) {
+    return new CronWebHook({querySettings, objectParser, objectTransformer, cronPattern, stateFilePath, equal, state, onStart}).start()
+}
+
+class CronWebHook {
+    constructor({querySettings, objectParser, objectTransformer, cronPattern, stateFilePath, equal, state, onStart}) {
+        this.querySettings = querySettings
+        this.cronPattern = cronPattern || '* * * * *'
+        this.stateFilePath = stateFilePath || '__tempState.json'
+        this.equal = equal || deepEqual
+        this.state = state
+        this.onStart = onStart
+        if (typeof objectParser === 'function')
+            this.objectParser = objectParser
+        else if (objectParser === TYPE_JSON)
+            this.objectParser = JSON.parse
+        else if (objectParser === TYPE_XML)
+            this.objectParser = fromXml
+        if (!this.objectParser)
+            this.objectParser = s => s + ''
+        this.objectTransformer = objectTransformer || (o => o)
+    }
+
+    start() {
+        this.job = new CronJob(this.cronPattern, getCronFunction(this), null, true, "Europe/Rome")
+        this.state = this.state || getState0(this.stateFilePath || '__tempState.json')
+        return this
+    }
+
+    stop() {
+        return this.job.stop()
+    }
+
+    setCronPattern(cronPattern) {
+        if (cronPattern)
+            this.job.setTime(cronPattern)
+    }
+
+    toProperties() {
+        {this.querySettings, this.objectParser, this.cronPattern, this.stateFilePath, this.equal, this.state}
+    }
+}
+
+module.exports = {
+    CronWebHook,
+    startCronWebhook,
+    TYPE_XML,
+    TYPE_JSON,
+    TYPE_PLAIN_TEXT
 }
