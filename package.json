@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/balsick/cron-webhook#readme",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "cron": "^1.8.2",
     "deep-equal": "^2.0.3",
     "xml2js": "^0.4.23"
